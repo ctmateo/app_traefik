@@ -1,0 +1,10 @@
+FROM node:18
+WORKDIR /pruebas
+COPY package*.json .
+RUN npm install
+COPY . .
+EXPOSE 3000
+
+CMD ["node", "app.js"]
+
+# PORTAL MANTENIMIENTO -> PASAR A KUBERNETES -> ADMINISTRA RECURSOS -> DEPLOYMENTS -> CREAR DEPLOYMENT

@@ -1,0 +1,34 @@
+services:
+  traefik:
+    image: traefik:latest
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.local`)"
+    networks:
+      - web
+  nodeapp:
+    build: .
+    environment:
+      - VALUE_LINK=default_value
+    ports:
+      - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nodeapp.rule=Host(`nodeapp.local`)"
+      - "traefik.http.services.nodeapp.loadbalancer.server.port=3000"
+    networks:
+      - web
+    depends_on:
+      - traefik
+networks:
+  web:
+    driver: bridge
+    
+      

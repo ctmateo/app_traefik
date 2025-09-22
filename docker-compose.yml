@@ -8,7 +8,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443" 
       - "--api.insecure=true"
-      - "--providers.file.directory=/certs"
+      - "--providers.file.filename=/certs/tls.yml"
    
     ports:
       - "80:80"
@@ -36,7 +36,6 @@ services:
       - "traefik.http.routers.nodeapp.rule=Host(`nodeapp.local`)"
       - "traefik.http.services.nodeapp.loadbalancer.server.port=3000"
       - "traefik.http.routers.nodeapp.entrypoints=websecure"
-      - "traefik.http.routers.nodeapp.tls.certresolver=myresolver"
       - "traefik.http.routers.nodeapp.tls=true"
     networks:
       - web

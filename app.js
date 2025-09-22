@@ -1,13 +1,29 @@
-let instance_message = process.env.VALUE_LINK;
-const port = process.env.PORT || 3000;
+const express = require('express');
+const bodyParser= require('body-parser');
 
-const http = require('http');
-const server = http.createServer((req, res) => {
-    res.end(`Mensaje mediante la url ${instance_message}`);
+const app = express();
+const port = 3000;
+
+// INTERMEDIOS 
+app.use(bodyParser.urlencoded({extended : true}))
+
+// URL GET DATA
+app.get('/', (req, res) => {
+    res.send(`<form action ="/message" method="post">
+        <input type="text" name="value" placeholder="variable a enviar"/>
+        <button type="submit">Enviar variable</button>
+        </form>`);
 });
 
-server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+// POST DATA FROM INPUT
+app.post('/message', (req, res) => {
+    const variable = req.body.value;
+    res.send(`La variable enviada es: ${variable}`);
+});
+
+
+app.listen(port, () => {
+    console.log(`Escuchando en el puerto ${port}`);
 });
 
 /* DOCKER COMPOSE -> CREAR UNA NUEVA APLICACION -> SUBIR IMAGEN -> PONER NOMBRE A LA APLICACION -> SELECCIONAR IMAGEN -> CONFIGURAR PUERTO 3000 -> CREAR APLICACION

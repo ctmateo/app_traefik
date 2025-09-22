@@ -1,50 +1,49 @@
+version: '3.8'
 services:
-# Servicio de traefik
   traefik:
-    container_name: traefik
-    image: traefik:latest
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443" 
-      - "--api.insecure=true"
-      - "--providers.file.filename=/certs/tls.yml"
+    container_name: traefik # ESTE ES EL NOMBRE DEL CONTENEDOR
+    image: traefik:latest # IMAGEN DE TRAEFIK EN ELLA ESTAN LAS CONFIGURACIONES PARA INICIAR TRAEFIK
+    command: # INSTRUCCIONES DE TRAEFIK
+      - "--api.dashboard=true" # HABILITA LA PAGINA DEL DASHBOARD
+      - "--providers.docker=true" # PROVIDER DE DOCKER CON EL QUE TRAEFIK DETECTA LOS CONTENEDORES
+      - "--entrypoints.web.address=:80" #PUERTO DE ENTRADA HTTP EN EL QUE ESCUCHA TRAEFIK
+      - "--entrypoints.websecure.address=:443" # |PUERTO DE ENTRADA HTTPS EN EL QUE ESCUCHA TRAEFIK
+      - "--api.insecure=true" # HABILITA EL DASHBOARD SIN SEGURIDAD
+      - "--providers.file.filename=/certs/tls.yml" # TRAE LOS CERTIFICADOS FIRMADO MANUALMENTE CON OPENSLL
    
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+    ports: # PUERTOS QUE EXPONE EL CONTENEDOR
+      - "80:80" # PUERTO HTTP
+      - "443:443" # PUERTO HTTPS
+      - "8080:8080" # PUERTO PARA EL DASHBOARD DE TRAEFIK
 
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./certs:/certs"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`traefik.local`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls=true"
+    volumes: # LOS VOLUMENES SON PARA QUE TRAEFIK PUEDA LEER LA CONFIGURACION DE DOCKER Y LOS CERTIFICADOS
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # AQUI LEEMOS LA CONFIGURACION DE DOCKER COMO VOLUMEN DE SOLO LECTURA ADEMAS DE QUE TRAEFIK PUEDA DETECTAR LOS CONTENEDORES
+      - "./certs:/certs" # AQUI LEEMOS LOS CERTIFICADOS QUE CREAMOS CON OPENSSL
+    labels: # LAS LABELS SON PARA CONFIGURAR EL SITIO DEL DASHBOARD 
+      - "traefik.enable=true" # HABILITA EL FRAMEWORK DE TRAEFIK
+      - "traefik.http.routers.api.rule=Host(`traefik.local`)" # AQUI DEFINIMOS LA REGLA PARA ACCEDER AL DASHBOARD
+      - "traefik.http.routers.api.entrypoints=websecure" # AQUI DEFINIMOS EL PUNTO DE ENTRADA
+      - "traefik.http.routers.api.tls=true" # AQUI HABILITAMOS TLS
 
-    networks:
+    networks: # DEFINIMOS LA RED EN LA QUE VA A TRABAJAR TRAEFIK
+      - web # NOMBRE DE LA RED
+  nodeapp: # ESTO ES LA APLICAION DE NODEJS
+    build: . # AQUI DEFINIMOS LA CONSTRUCCION DEL DOCKERFILE
+    container_name: nodeapp # NOMBRE DEL CONTENEDOR
+    ports: # PUERTOS QUE EXPONE EL CONTENEDOR PARA LA APLICACION
+      - "3000:3000" # PUERTO DE LA APLICACION
+    labels: # LAS LABELS SON PARA CONFIGURAR LA APLICACION EN TRAEFIK
+      - "traefik.enable=true" # HABILITA EL FRAMEWORK DE TRAEFIK
+      - "traefik.http.routers.nodeapp.rule=Host(`nodeapp.local`)" # AQUI DEFINIMOS LA REGLA PARA ACCEDER A LA APLICACION
+      - "traefik.http.services.nodeapp.loadbalancer.server.port=3000" # AQUI DEFINIMOS EL PUERTO INTERNO DE LA APLICACION
+      - "traefik.http.routers.nodeapp.entrypoints=websecure" # AQUI DEFINIMOS EL PUNTO DE ENTRADA
+      - "traefik.http.routers.nodeapp.tls=true" # AQUI HABILITAMOS TLS
+    networks: # DEFINIMOS LA RED EN LA QUE VA A TRABAJAR LA APLICACION
       - web
-  nodeapp:
-    build: .
-    container_name: nodeapp
-    # environment:
-    ports:
-      - "3000:3000"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nodeapp.rule=Host(`nodeapp.local`)"
-      - "traefik.http.services.nodeapp.loadbalancer.server.port=3000"
-      - "traefik.http.routers.nodeapp.entrypoints=websecure"
-      - "traefik.http.routers.nodeapp.tls=true"
-    networks:
-      - web
-    depends_on:
+    depends_on: # AQUI DEFINIMOS QUE LA APLICACION DEPENDE DE TRAEFIK
       - traefik
 networks:
   web:
-    driver: bridge
+    driver: bridge # TIPO DE RED QUE VAMOS A USAR
     
       

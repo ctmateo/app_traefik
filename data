@@ -32,18 +32,4 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout local.key -out local.crt -subj "/CN=*.local" \
   -addext "subjectAltName=DNS:traefik.local,DNS:nodeapp.local"
 
-@echo off
-set CERT_FILE=certs\tls.crt
-
-if not exist %CERT_FILE% (
-    echo ❌ No se encontró %CERT_FILE%
-    exit /b 1
-)
-
-echo 📥 Importando certificado...
-certutil -addstore -f "Root" %CERT_FILE%
-
-echo ✅ Certificado instalado como confiable.
-echo 👉 Reinicia tu navegador y abre https://nodeapp.local
-pause
 

@@ -19,7 +19,9 @@
 # localhost name resolution is handled within DNS itself.
 #	127.0.0.1       localhost
 #	::1             localhost
-# 127.0.0.1 traefik.local.nodeapp.local
+127.0.0.1 traefik.local
+127.0.0.1 nodeapp.local
+
 # Added by Docker Desktop
 192.168.1.74 host.docker.internal
 192.168.1.74 gateway.docker.internal

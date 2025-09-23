@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  traefik:
+    container_name: traefik 
+    image: traefik:latest 
+    command: 
+      - "--api.dashboard=true"
+      - "--providers.docker=true" 
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.filename=/certs/tls.yml" 
+   
+    ports: 
+      - "80:80" 
+      - "443:443"
+      - "8080:8080" 
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" 
+      - "./certs:/certs" 
+    labels: 
+      - "traefik.enable=true" 
+      - "traefik.http.routers.api.rule=Host(`traefik.local`)" 
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls=true" 
+      - "traefik.http.routers.api.middelware=authtraefik" 
+      - "traefik.http.middelware.authtraefik.basicauth.users=root:$2y$10$zhekfsvpLNK80WEJQqv7PeLiERCMlwR1WxtHmfWTRpjqOOTmmvr2i"
+
+    networks:
+      - web
+  nodeapp: 
+    build: . 
+    container_name: nodeapp 
+    ports: 
+      - "3000:3000"
+    labels: 
+      - "traefik.enable=true" 
+      - "traefik.http.routers.nodeapp.rule=Host(`nodeapp.local`)"
+      - "traefik.http.services.nodeapp.loadbalancer.server.port=3000"
+      - "traefik.http.routers.nodeapp.entrypoints=websecure"
+      - "traefik.http.routers.nodeapp.tls=true"
+    networks:
+      - web
+    depends_on: 
+      - traefik
+networks:
+  web:
+    driver: bridge
+    
+      
